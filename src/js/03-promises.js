@@ -1,33 +1,48 @@
-import Notiflix, { Notify } from 'notiflix';
-const form = document.querySelector('.form');
-form.addEventListener('submit', submit);
+import Notiflix from 'notiflix';
 
+const form = document.querySelector('.form');
+const delay = document.querySelector('input[name="delay"]');
+const step = document.querySelector('input[name="step"]');
+const amount = document.querySelector('input[name="amount"]');
+const submit = document.querySelector('button[type="submit"]');
+
+submit.addEventListener('click', submitPromise);
+
+function submitPromise(e) {
+  e.preventDefault();
+
+  if (delay.value <= 0 || step.value <= 0 || amount.value <= 0) {
+    Notiflix.Notify.warning(
+      'Por favor ingrese un valor correcto en todos los campos'
+    );
+  } else {
+    for (let i = 0; i < Number(amount.value); i++) {
+      let delayIncresing = Number(delay.value) + i * Number(step.value);
+      createPromise(i + 1, delayIncresing)
+        .then(({ position, delay }) => {
+          Notiflix.Notify.success(
+            `✅ Fulfilled promise ${position} in ${delay}ms`
+          );
+          console.log(`✅ Fulfilled promise ${position} in ${delay}ms`);
+        })
+        .catch(({ position, delay }) => {
+          Notiflix.Notify.failure(
+            `❌ Rejected promise ${position} in ${delay}ms`
+          );
+          console.log(`❌ Rejected promise ${position} in ${delay}ms`);
+        });
+    }
+  }
+}
 function createPromise(position, delay) {
+  const shouldResolve = Math.random() > 0.3;
   return new Promise((resolve, reject) => {
-    const shouldResolve = Math.random() > 0.3;
     setTimeout(() => {
       if (shouldResolve) {
         resolve({ position, delay });
       } else {
         reject({ position, delay });
       }
-    }, 2000);
+    }, delay);
   });
-}
-function submit(x) {
-  x.preventDefault();
-  let delay = Number(form.elements.delay.value);
-  const step = Number(form.elements.step.value);
-  const amount = Number(form.elements.amount.value);
-
-  for (let index = 1; index <= amount; index++) {
-    createPromise(index, delay).then(onSucces).catch(onError);
-    delay += step;
-  }
-}
-function onSucces({ position, delay }) {
-  Notiflix.Notify.success(`Aprobada ${position} en ${delay}ms`);
-}
-function onError({ position, delay }) {
-  Notiflix.Notify.failure(`Denegada ${position} en ${delay}ms`);
 }
